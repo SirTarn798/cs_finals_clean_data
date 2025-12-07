@@ -60,13 +60,13 @@ def clean_data(raw_text):
     text = re.sub(r'\s+', ' ', text).strip()
     
     # Step 6: Separate numbers
-    text = re.sub(r'([0-9]+)', r' \1 ', text)
-    text = re.sub(r'([,.!?])', r' \1 ', text)
-    text = re.sub(r'\s+', ' ', text).strip()
+    # text = re.sub(r'([0-9]+)', r' \1 ', text)
+    # text = re.sub(r'([,.!?])', r' \1 ', text)
+    # text = re.sub(r'\s+', ' ', text).strip()
     
-    # Step 7: Split ThaiWords1234 cases
-    text = re.sub(r'([ก-๙]+)([0-9]+)', r'\1 \2', text)
-    text = re.sub(r'([0-9]+)([ก-๙]+)', r'\1 \2', text)
+    # # Step 7: Split ThaiWords1234 cases
+    # text = re.sub(r'([ก-๙]+)([0-9]+)', r'\1 \2', text)
+    # text = re.sub(r'([0-9]+)([ก-๙]+)', r'\1 \2', text)
     
     # Step 8: Convert tags to real Thai words
     text = text.replace("<PICKUP>", "ขึ้น")
