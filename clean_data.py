@@ -3,22 +3,27 @@ import unicodedata
 import re
 from clean_number import normalize_all_numbers
 
+emoji_map = {
+    "🔼": "<PICKUP>", "⏫": "<PICKUP>", "⬆️": "<PICKUP>", "⤴️": "<PICKUP>", "⬆": "<PICKUP>", "👆" : "<PICKUP",
+    "🔽": "<DROPOFF>", "⏬": "<DROPOFF>", "⬇️": "<DROPOFF>", "⤵️": "<DROPOFF>", "👇" : "<DROPOFF>"
+}
+# Parenthesis "emoji names"
+paren_map = {
+    "(red arrow up)": "<PICKUP>",
+    "(red arrow curving up)": "<PICKUP>",
+    "(red arrow curving down)": "<DROPOFF>",
+    "(red arrow down)": "<DROPOFF>",
+}
+
+def remove_zero_width(text): #\u0020\u0027\ufe0f\u0027
+    zw = r"[\u200B\u200C\u200D\u2060\uFEFF\u0020\u0027]"
+    return re.sub(zw, "", text)
+
 def clean_data(raw_text):
     # Emojis that should NOT be deleted and their tags
-    emoji_map = {
-        "🔼": "<PICKUP>", "⏫": "<PICKUP>", "⬆️": "<PICKUP>", "⤴️": "<PICKUP>", "⬆": "<PICKUP>",
-        "🔽": "<DROPOFF>", "⏬": "<DROPOFF>", "⬇️": "<DROPOFF>", "⤵️": "<DROPOFF>",
-    }
-    # Parenthesis "emoji names"
-    paren_map = {
-        "(red arrow up)": "<PICKUP>",
-        "(red arrow curving up)": "<PICKUP>",
-        "(red arrow curving down)": "<DROPOFF>",
-        "(red arrow down)": "<DROPOFF>",
-    }
     text = unicodedata.normalize("NFC", raw_text)
     text = text.lower()
-    
+        
     # Step 1: Replace allowed emojis
     for k, v in emoji_map.items():
         text = text.replace(k, v)
@@ -32,7 +37,7 @@ def clean_data(raw_text):
     
     # Step 3: Remove only specific parenthesis emojis
     emoji_patterns = [
-        "yes", "cross mark"
+        "yes", "cross mark", "white triangle right"
         # Add more emoji names as needed
     ]
     escaped_patterns = [re.escape(pattern) for pattern in emoji_patterns]
@@ -50,11 +55,19 @@ def clean_data(raw_text):
         u"\U0001F1E0-\U0001F1FF"
         u"\U00002700-\U000027BF"
         u"\U0001F900-\U0001F9FF"
-        u"\U00002600-\U000026FF"
+        u"\U0001FA70-\U0001FAFF"  # newer emoji
+        u"\U0001F000-\U0001F02F"  # Mahjong
+        u"\U0001F0A0-\U0001F0FF"  # Playing cards
+        u"\u2600-\u26FF"          # misc symbols
+        u"\u2300-\u23FF"          # technical symbols
+        u"\uFE0E-\uFE0F"          # variation selectors
         "]+",
         flags=re.UNICODE
     )
     text = emoji_pattern.sub("", text)
+    
+    text = remove_zero_width(text)
+
     
     # Step 5: Normalize spacing
     text = re.sub(r'\s+', ' ', text).strip()
@@ -73,37 +86,6 @@ def clean_data(raw_text):
     text = text.replace("<DROPOFF>", "ลง")
     
     return text
-
-def process_excel_file(input_file, output_file=None, column_name=None):
-    """
-    Read an Excel file, process each row, and write results to second column.
-    
-    Args:
-        input_file: Path to input Excel file
-        output_file: Path to output Excel file (optional, defaults to input_file)
-        column_name: Name of the column to process (optional, uses first column if None)
-        
-    Returns:
-        DataFrame with original and processed data
-    """
-    # Read the Excel file
-    df = pd.read_excel(input_file)
-    
-    # Get the column to process
-    if column_name is None:
-        column_name = df.columns[0]
-    
-    # Process each row and store in new column
-    df['Processed'] = df[column_name].apply(lambda x: clean_data(str(x)))
-    
-    # Save to output file
-    if output_file is None:
-        output_file = input_file
-    
-    df.to_excel(output_file, index=False)
-    print(f"Processing complete. Results saved to {output_file}")
-    
-    return df
 
 # Example usage
 if __name__ == "__main__":

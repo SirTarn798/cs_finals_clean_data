@@ -27,7 +27,7 @@ def process_excel_file(input_file, output_file=None, column_name=None):
     df['Processed'] = df[column_name].apply(lambda x: clean_data(str(x)))
     
     # Tokenize the cleaned text
-    df['Tokens'] = df['Processed'].apply(lambda x: word_tokenize(str(x), engine='newmm'))
+    df['Tokens'] = df['Processed'].apply(lambda x: word_tokenize(str(x), engine='newmm', keep_whitespace=False))
     
     # Create NER training format dataframe
     ner_data = []
