@@ -28,12 +28,35 @@ def replace_wordnums(text):
 def normalize_thai_numbers(text):
     return text.translate(thai_nums)
 
+def remove_hyphens_from_phone_numbers(text):
+    """
+    Remove hyphens from numbers that start with 0 (likely phone numbers).
+    For example: 098-3214567 -> 0983214567
+    """
+    # Find all patterns that look like phone numbers starting with 0
+    # This pattern matches: 0 followed by digits and hyphens
+    def replace_hyphens(match):
+        # Remove all hyphens from the matched phone number
+        return match.group(0).replace('-', '')
+    
+    # Pattern to match numbers starting with 0 that contain hyphens
+    # Matches: 0 + (digits or hyphens)
+    text = re.sub(r'0[\d-]+', replace_hyphens, text)
+    
+    return text
+
 def normalize_all_numbers(text):
+    # First replace emoji numbers
     for emoji, digit in emoji_num_map.items():
         text = text.replace(emoji, digit)
-
+    
+    # Replace word numbers
     text = replace_wordnums(text)
-
+    
+    # Normalize Thai numbers
     text = normalize_thai_numbers(text)
-
+    
+    # Remove hyphens from phone numbers (numbers starting with 0)
+    text = remove_hyphens_from_phone_numbers(text)
+    
     return text
